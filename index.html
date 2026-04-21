@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文字麻将</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --felt: #2d5a3d;
+  --felt-light: #3a7050;
+  --felt-dark: #1e3d2a;
+  --tile-bg: #fdf6e3;
+  --tile-border: #c8a96e;
+  --tile-shadow: #8b6914;
+  --tile-selected: #fff8dc;
+  --tile-compose: #e8f4fd;
+  --tile-compose-border: #2980b9;
+  --tile-discard-border: #c0392b;
+  --tile-discard-bg: #fdecea;
+  --tile-used: rgba(253,246,227,0.3);
+  --gold: #c8a96e;
+  --gold-dark: #8b6914;
+  --red: #c0392b;
+  --blue: #2980b9;
+  --green-text: #1a4a2a;
+  --text-light: #f5f0e8;
+  --text-muted: rgba(245,240,232,0.65);
+  --panel-bg: rgba(20,40,28,0.55);
+  --panel-border: rgba(200,169,110,0.3);
+  --success-bg: #e8f5e9;
+  --success-text: #1b5e20;
+  --error-bg: #ffebee;
+  --error-text: #b71c1c;
+  --info-bg: #e3f2fd;
+  --info-text: #0d47a1;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--felt);
+  background-image:
+    radial-gradient(ellipse at 20% 20%, rgba(58,112,80,0.6) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(30,61,42,0.8) 0%, transparent 60%),
+    repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px);
+  min-height: 100vh;
+  font-family: 'Noto Sans SC', sans-serif;
+  color: var(--text-light);
+  padding: 20px 16px 40px;
+}
+
+h1 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-align: center;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  margin-bottom: 20px;
+}
+
+.container { max-width: 720px; margin: 0 auto; }
+
+/* panels */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(4px);
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--panel-border);
+}
+
+/* stat row */
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; }
+.stat-value {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.stat-value.blue { color: #64b5f6; }
+
+/* tiles */
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 62px;
+  border-radius: 6px;
+  border-top: 1px solid rgba(255,255,255,0.9);
+  border-left: 1px solid rgba(255,255,255,0.6);
+  border-right: 2px solid var(--tile-shadow);
+  border-bottom: 3px solid var(--tile-shadow);
+  background: var(--tile-bg);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  color: #2c1a00;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s, box-shadow 0.12s;
+  flex-shrink: 0;
+  box-shadow: 2px 3px 6px rgba(0,0,0,0.4);
+  position: relative;
+}
+.tile:hover { transform: translateY(-6px); box-shadow: 2px 8px 12px rgba(0,0,0,0.5); }
+.tile.in-compose { opacity: 0.2; pointer-events: none; transform: none; box-shadow: none; }
+.tile.sel-discard {
+  border-color: var(--red);
+  background: var(--tile-discard-bg);
+  transform: translateY(-6px);
+  box-shadow: 0 0 0 2px var(--red), 2px 8px 12px rgba(0,0,0,0.5);
+}
+.tile-row { display: flex; flex-wrap: wrap; gap: 8px; min-height: 70px; align-items: flex-end; }
+
+/* compose tiles */
+.compose-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 62px;
+  border-radius: 6px;
+  border: 2px solid var(--tile-compose-border);
+  background: var(--tile-compose);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  color: #0d1b2a;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: transform 0.12s;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(41,128,185,0.4), 2px 4px 8px rgba(0,0,0,0.3);
+}
+.compose-tile:hover { transform: scale(1.1); }
+.order-num {
+  position: absolute; top: 3px; right: 5px;
+  font-size: 10px; color: var(--blue); font-weight: 700;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.compose-box {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  min-height: 78px; padding: 10px 14px;
+  border: 1.5px dashed rgba(41,128,185,0.5);
+  border-radius: 10px;
+  background: rgba(41,128,185,0.08);
+}
+.compose-hint { font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+/* buttons */
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  font-size: 13px;
+  font-family: 'Noto Sans SC', sans-serif;
+  cursor: pointer;
+  background: rgba(245,240,232,0.1);
+  color: var(--text-light);
+  transition: background 0.12s, transform 0.08s;
+  letter-spacing: 1px;
+}
+.btn:hover { background: rgba(245,240,232,0.18); }
+.btn:active { transform: scale(0.97); }
+.btn.primary {
+  background: linear-gradient(135deg, #c8a96e, #a07840);
+  color: #1a0f00;
+  border-color: #c8a96e;
+  font-weight: 500;
+}
+.btn.primary:hover { background: linear-gradient(135deg, #d4b87e, #b08850); }
+.btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+
+/* rules */
+.rule-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--panel-border);
+  font-size: 12px;
+  font-family: 'Noto Sans SC', sans-serif;
+  cursor: pointer;
+  background: rgba(245,240,232,0.08);
+  color: var(--text-muted);
+  transition: all 0.12s;
+  letter-spacing: 1px;
+}
+.rule-btn.active {
+  border-color: var(--gold);
+  background: rgba(200,169,110,0.2);
+  color: var(--gold);
+  font-weight: 500;
+}
+
+/* messages */
+.msg {
+  padding: 10px 14px; border-radius: 8px; font-size: 14px;
+  margin-bottom: 10px; border: 1px solid;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.msg.success { background: var(--success-bg); color: var(--success-text); border-color: #a5d6a7; }
+.msg.error { background: var(--error-bg); color: var(--error-text); border-color: #ef9a9a; }
+.msg.info { background: var(--info-bg); color: var(--info-text); border-color: #90caf9; }
+
+/* formed words */
+.formed-word {
+  padding: 5px 14px;
+  background: rgba(200,169,110,0.2);
+  border-radius: 20px;
+  color: var(--gold);
+  font-size: 16px;
+  font-family: 'Noto Serif SC', serif;
+  border: 1px solid rgba(200,169,110,0.5);
+}
+
+/* discard */
+.discard-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 46px;
+  border-radius: 4px;
+  background: rgba(253,246,227,0.25);
+  border: 1px solid rgba(200,169,110,0.3);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  color: rgba(245,240,232,0.5);
+}
+
+/* win overlay */
+#win-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#win-overlay.show { display: flex; }
+.win-box {
+  background: var(--felt-dark);
+  border: 2px solid var(--gold);
+  border-radius: 16px;
+  padding: 36px 48px;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(200,169,110,0.4);
+}
+.win-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 36px;
+  color: var(--gold);
+  letter-spacing: 8px;
+  margin-bottom: 12px;
+}
+.win-score { font-size: 18px; color: var(--text-muted); margin-bottom: 24px; }
+.win-score span { color: var(--gold); font-size: 28px; font-weight: 700; }
+
+hr.divider { border: none; border-top: 1px solid var(--panel-border); margin: 2px 0 12px; }
+.help-text { font-size: 12px; color: var(--text-muted); line-height: 1.9; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>文字麻将</h1>
+  <p class="subtitle">以字为牌 · 以词为胡</p>
+
+  <!-- stat row -->
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-label">得 分</span>
+      <span class="stat-value" id="score">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">已成词</span>
+      <span class="stat-value" id="formed-count">0</span>
+      <span style="font-size:11px;color:var(--text-muted);">目标 <span id="target-display">3</span> 组</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">剩余牌</span>
+      <span class="stat-value blue" id="deck-count">0</span>
+    </div>
+  </div>
+
+  <!-- rules panel -->
+  <div class="panel">
+    <div class="panel-title">胡牌规则</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="rule-btns"></div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text-muted);">目标成词数</span>
+      <button class="btn" style="padding:3px 10px;" onclick="changeTarget(-1)">－</button>
+      <span id="target-count" style="color:var(--gold);font-weight:700;font-size:16px;">3</span>
+      <button class="btn" style="padding:3px 10px;" onclick="changeTarget(1)">＋</button>
+    </div>
+  </div>
+
+  <div id="msg-area"></div>
+
+  <!-- hand -->
+  <div class="panel">
+    <div class="panel-title">手牌</div>
+    <div class="tile-row" id="hand-area"></div>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">点击 → 加入组词区　长按 → 标红打出</div>
+  </div>
+
+  <!-- compose -->
+  <div class="panel">
+    <div class="panel-title">组词区</div>
+    <div class="compose-box" id="compose-box"></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">单击 → 移到末尾调顺序　双击 → 移回手牌</div>
+  </div>
+
+  <!-- buttons -->
+  <div class="btn-row">
+    <button class="btn primary" id="btn-submit" disabled>提交词语</button>
+    <button class="btn" id="btn-clear" disabled>清空组词区</button>
+    <button class="btn" id="btn-draw">摸 牌</button>
+    <button class="btn" id="btn-discard" disabled>打出红框牌</button>
+    <button class="btn" id="btn-new" style="margin-left:auto;">新游戏</button>
+  </div>
+
+  <!-- formed words -->
+  <div id="formed-area" style="display:none;" class="panel">
+    <div class="panel-title">已成词</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="formed-list"></div>
+  </div>
+
+  <!-- discard -->
+  <div class="panel">
+    <div class="panel-title">弃牌堆</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;min-height:30px;" id="discard-area"></div>
+  </div>
+
+  <div class="panel">
+    <div class="help-text">
+      <b style="color:var(--gold);">玩法：</b>
+      点击手牌中的字加入组词区，调整好顺序后点「提交词语」。
+      2字词得10分，3字词得20分，4字成语得40分。
+      达成上方设定的条件即可胡牌。<br>
+      <b style="color:var(--gold);">打牌：</b>长按手牌（约0.5秒）将其标红，再点「打出红框牌」丢弃。
+    </div>
+  </div>
+</div>
+
+<!-- win overlay -->
+<div id="win-overlay">
+  <div class="win-box">
+    <div class="win-title">胡　牌</div>
+    <div class="win-score">总得分 <span id="win-score">0</span> 分　成词 <span id="win-words">0</span> 组</div>
+    <button class="btn primary" onclick="initGame();document.getElementById('win-overlay').classList.remove('show');" style="font-size:15px;padding:10px 32px;letter-spacing:3px;">再来一局</button>
+  </div>
+</div>
+
+<script>
+const WORDS_2 = [
+  "人生","人民","人心","人情","人才","人口","人力","人气","人事","人身",
+  "世界","世人","世事","世纪","世代","天下","天地","天气","天空","天才",
+  "地方","地球","地区","地图","地道","国家","国土","国民","国力","国际",
+  "社会","社区","民众","民心","民族","民主","公民","公共","公平","公开",
+  "山水","山川","山地","山峰","水平","水力","水分","水气","水源","水面",
+  "风云","风光","风力","风气","风景","日月","日光","日记","月光","月亮",
+  "星空","星光","海洋","海水","海面","海风","森林","草原","花朵","花草",
+  "阳光","清风","白云","青山","绿地","绿色","蓝天","红日","黄土","黑夜",
+  "时间","时代","时刻","时期","空间","年代","年份","年级","年龄","今天",
+  "明天","昨天","早上","晚上","下午","未来","现在","过去","当时","瞬间",
+  "学习","学生","学校","学问","学科","学力","知识","文化","文字","文明",
+  "历史","科学","科技","技术","技能","艺术","音乐","书法","绘画","诗词",
+  "语言","语法","文章","作文","写作","阅读","思想","思维","思考","智慧",
+  "教育","教学","教师","老师","课本","课程","成绩","作业","考试","题目",
+  "梦想","希望","勇气","力气","气力","力量","力度","志气","意志","精神",
+  "心灵","快乐","幸福","美好","友情","爱情","亲情","感情","情感","情绪",
+  "心情","自信","自由","自立","平静","平和","温暖","善良","诚实","诚心",
+  "热情","勤奋","努力","坚持","坚强","进取","上进","理想","信念","信心",
+  "决心","工作","生活","生命","生产","生长","发展","变化","进步","创造",
+  "创新","运动","活动","行动","行为","行业","职业","事业","任务","计划",
+  "目标","方法","方式","方向","道路","路程","步骤","过程","结果","效果",
+  "成果","家庭","家人","父母","子女","朋友","同学","同事","邻居","关系",
+  "社交","身体","健康","体力","体重","心脏","大脑","眼睛","耳朵","饮食",
+  "食物","营养","休息","睡眠","医生","医院","药物","治疗","经济","金融",
+  "市场","价格","成本","利润","收入","支出","消费","储蓄","投资","企业",
+  "公司","产品","服务","质量","品质","效率","管理","问题","原因","影响",
+  "作用","意义","价值","基础","条件","环境","背景","情况","状况","现象",
+  "规律","规则","标准","方案","政策","制度","系统","结构","功能","特点",
+  "优点","缺点","区别","自然","春天","夏天","秋天","冬天","雨水","雪花",
+  "大地","高山","河流","湖泊","土地","空气","温度","气候","季节","节气",
+];
+
+const WORDS_3 = [
+  "积极性","主动性","创造性","重要性","可能性","必要性","实用性",
+  "新时代","新发展","新变化","新思想","老百姓","年轻人","读书人",
+  "图书馆","实验室","操场上","运动员","艺术家","科学家","文学家",
+  "大自然","小朋友","新世界","好朋友","老朋友",
+];
+
+const WORDS_4 = [
+  "春暖花开","万紫千红","一帆风顺","百花齐放","天长地久",
+  "山清水秀","风和日丽","人山人海","年年有余","万象更新",
+  "鸟语花香","一心一意","高山流水","月明风清","大海无涯",
+  "学无止境","天道酬勤","自强不息","厚德载物","海纳百川",
+  "水滴石穿","持之以恒","勤能补拙","青出于蓝","后来居上",
+  "百尺竿头","精益求精","实事求是","与时俱进","开拓创新",
+  "艰苦奋斗","无私奉献","勇往直前","志存高远","脚踏实地",
+  "心旷神怡","美不胜收","如诗如画","行云流水","炉火纯青",
+];
+
+const ALL_WORDS = new Set([...WORDS_2, ...WORDS_3, ...WORDS_4]);
+const ALL_WORDS_ARR = [...ALL_WORDS];
+
+const RULES = [
+  {id:"allow2", label:"允许2字词"},
+  {id:"allow3", label:"允许3字词"},
+  {id:"allow4", label:"允许4字词"},
+  {id:"no_repeat_char", label:"不重复用字"},
+  {id:"must_include4", label:"必须含成语"},
+  {id:"score100", label:"百分达标"},
+];
+
+let activeRules = new Set(["allow2","allow3","allow4"]);
+let targetCount = 3;
+let state = {};
+let longPressTimer = null;
+
+function buildDeck() {
+  const freq = {};
+  ALL_WORDS_ARR.forEach(w => [...w].forEach(c => { freq[c] = (freq[c]||0)+1; }));
+  const deck = [];
+  Object.entries(freq).forEach(([c,cnt]) => {
+    for (let i = 0; i < Math.max(4, cnt); i++) deck.push(c);
+  });
+  for (let i = deck.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]] = [deck[j],deck[i]];
+  }
+  return deck;
+}
+
+function initGame() {
+  const deck = buildDeck();
+  state = {
+    deck, deckIdx: 13,
+    hand: deck.slice(0,13),
+    compose: [],
+    selDiscard: new Set(),
+    discardPile: [],
+    formedWords: [],
+    score: 0,
+    won: false,
+  };
+  renderRules();
+  render();
+  showMsg("游戏开始！词库共 " + ALL_WORDS_ARR.length + " 个词语。", "info");
+}
+
+function renderRules() {
+  const c = document.getElementById("rule-btns");
+  c.innerHTML = "";
+  RULES.forEach(r => {
+    const b = document.createElement("button");
+    b.className = "rule-btn" + (activeRules.has(r.id) ? " active" : "");
+    b.textContent = r.label;
+    b.onclick = () => {
+      const lengths = ["allow2","allow3","allow4"];
+      if (activeRules.has(r.id)) {
+        if (lengths.includes(r.id)) {
+          const remaining = lengths.filter(x => x !== r.id && activeRules.has(x));
+          if (remaining.length === 0) { showMsg("至少保留一种词长！","error"); return; }
+        }
+        activeRules.delete(r.id);
+      } else {
+        activeRules.add(r.id);
+      }
+      renderRules();
+    };
+    c.appendChild(b);
+  });
+  document.getElementById("target-count").textContent = targetCount;
+  document.getElementById("target-display").textContent = targetCount;
+}
+
+function changeTarget(d) {
+  targetCount = Math.max(1, Math.min(6, targetCount + d));
+  document.getElementById("target-count").textContent = targetCount;
+  document.getElementById("target-display").textContent = targetCount;
+}
+
+function render() {
+  document.getElementById("score").textContent = state.score;
+  document.getElementById("deck-count").textContent = state.deck.length - state.deckIdx;
+  document.getElementById("formed-count").textContent = state.formedWords.length;
+
+  const inCompose = new Set(state.compose.map(s => s.idx));
+  const handArea = document.getElementById("hand-area");
+  handArea.innerHTML = "";
+  state.hand.forEach((char, i) => {
+    const t = document.createElement("div");
+    if (inCompose.has(i)) {
+      t.className = "tile in-compose"; t.textContent = char;
+    } else if (state.selDiscard.has(i)) {
+      t.className = "tile sel-discard"; t.textContent = char;
+      t.onclick = () => toggleDiscard(i);
+    } else {
+      t.className = "tile"; t.textContent = char;
+      t.onclick = () => addToCompose(i);
+      t.onpointerdown = () => { longPressTimer = setTimeout(() => toggleDiscard(i), 500); };
+      t.onpointerup = () => clearTimeout(longPressTimer);
+      t.onpointerleave = () => clearTimeout(longPressTimer);
+    }
+    handArea.appendChild(t);
+  });
+
+  const box = document.getElementById("compose-box");
+  box.innerHTML = "";
+  if (state.compose.length === 0) {
+    const h = document.createElement("span");
+    h.className = "compose-hint"; h.textContent = "从手牌点字来组词";
+    box.appendChild(h);
+  } else {
+    state.compose.forEach((slot, pos) => {
+      const t = document.createElement("div");
+      t.className = "compose-tile";
+      t.innerHTML = slot.char + '<span class="order-num">' + (pos+1) + '</span>';
+      t.onclick = () => reorder(pos);
+      t.ondblclick = () => removeFromCompose(pos);
+      box.appendChild(t);
+    });
+    const h = document.createElement("span");
+    h.className = "compose-hint"; h.style.marginLeft = "4px";
+    h.textContent = "单击调顺序 · 双击移回";
+    box.appendChild(h);
+  }
+
+  const da = document.getElementById("discard-area");
+  da.innerHTML = "";
+  state.discardPile.slice().reverse().slice(0,30).forEach(c => {
+    const t = document.createElement("div");
+    t.className = "discard-tile"; t.textContent = c;
+    da.appendChild(t);
+  });
+
+  const fa = document.getElementById("formed-area");
+  const fl = document.getElementById("formed-list");
+  if (state.formedWords.length > 0) {
+    fa.style.display = "";
+    fl.innerHTML = state.formedWords.map(w => `<span class="formed-word">${w}</span>`).join("");
+  } else {
+    fa.style.display = "none";
+  }
+
+  document.getElementById("btn-submit").disabled = state.compose.length < 2 || state.won;
+  document.getElementById("btn-clear").disabled = state.compose.length === 0;
+  document.getElementById("btn-draw").disabled = state.deckIdx >= state.deck.length || state.won;
+  document.getElementById("btn-discard").disabled = state.selDiscard.size === 0;
+}
+
+function addToCompose(i) {
+  if (state.won) return;
+  state.selDiscard.delete(i);
+  state.compose.push({idx: i, char: state.hand[i]});
+  render();
+}
+function reorder(pos) {
+  if (pos === state.compose.length - 1) return;
+  const s = state.compose.splice(pos, 1)[0];
+  state.compose.push(s);
+  render();
+}
+function removeFromCompose(pos) {
+  state.compose.splice(pos, 1);
+  render();
+}
+function toggleDiscard(i) {
+  if (state.selDiscard.has(i)) state.selDiscard.delete(i);
+  else state.selDiscard.add(i);
+  render();
+}
+function checkWin() {
+  if (state.formedWords.length < targetCount) return false;
+  if (activeRules.has("must_include4") && !state.formedWords.some(w => w.length === 4)) return false;
+  if (activeRules.has("score100") && state.score < 100) return false;
+  return true;
+}
+function submitWord() {
+  const word = state.compose.map(s => s.char).join("");
+  const len = word.length;
+  if (len === 2 && !activeRules.has("allow2")) { showMsg("当前规则不允许2字词！","error"); return; }
+  if (len === 3 && !activeRules.has("allow3")) { showMsg("当前规则不允许3字词！","error"); return; }
+  if (len === 4 && !activeRules.has("allow4")) { showMsg("当前规则不允许4字词！","error"); return; }
+  if (!ALL_WORDS.has(word)) { showMsg(`"${word}" 不在词库中，调整顺序或换字试试！`,"error"); return; }
+  if (activeRules.has("no_repeat_char")) {
+    const used = new Set(state.formedWords.join(""));
+    const conflict = [...word].find(c => used.has(c));
+    if (conflict) { showMsg(`"${conflict}" 已在之前的词中出现，不能重复用字！`,"error"); return; }
+  }
+  const usedIdx = new Set(state.compose.map(s => s.idx));
+  state.hand = state.hand.filter((_,i) => !usedIdx.has(i));
+  state.compose = []; state.selDiscard = new Set();
+  state.formedWords.push(word);
+  const pts = len === 2 ? 10 : len === 3 ? 20 : 40;
+  state.score += pts;
+  render();
+  showMsg(`"${word}" +${pts}分！`, "success");
+  if (checkWin()) {
+    state.won = true;
+    setTimeout(() => {
+      document.getElementById("win-score").textContent = state.score;
+      document.getElementById("win-words").textContent = state.formedWords.length;
+      document.getElementById("win-overlay").classList.add("show");
+    }, 400);
+  }
+}
+function drawTile() {
+  if (state.deckIdx >= state.deck.length) { showMsg("牌堆已空！","error"); return; }
+  state.hand.push(state.deck[state.deckIdx++]);
+  render(); showMsg("摸到一张牌！","info");
+}
+function discardSelected() {
+  const idxs = [...state.selDiscard].sort((a,b) => b-a);
+  idxs.forEach(i => { state.discardPile.push(state.hand[i]); state.hand.splice(i,1); });
+  state.selDiscard = new Set();
+  render();
+}
+function showMsg(text, type) {
+  const a = document.getElementById("msg-area");
+  a.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  setTimeout(() => { if (a.innerHTML.includes(text)) a.innerHTML = ""; }, 3500);
+}
+
+document.getElementById("btn-submit").onclick = submitWord;
+document.getElementById("btn-clear").onclick = () => { state.compose = []; render(); };
+document.getElementById("btn-draw").onclick = drawTile;
+document.getElementById("btn-discard").onclick = discardSelected;
+document.getElementById("btn-new").onclick = initGame;
+
+initGame();
+</script>
+</body>
+</html>
