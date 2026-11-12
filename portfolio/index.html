@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zirou (Yoyo) Liang · Portfolio</title>
+<meta name="description" content="Design portfolio of Zirou (Yoyo) Liang: web interfaces and email templates.">
+<style>
+/* Layout: a sticky left sidebar that sorts the work by channel (web, email), beside a reading column:
+   big Georgia name, then one case study per project with framed screenshots. Georgia everywhere. */
+:root {
+  --paper: #F3F4F7;
+  --surface: #FFFFFF;
+  --ink: #14161E;
+  --muted: #565B6B;
+  --rule: #D9DCE4;
+  --accent: #3442C4;
+  --accent-soft: #E6E8FA;
+  --frame: #FFFFFF;
+  --serif: Georgia, "Times New Roman", Times, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111218; --surface: #1A1C24; --ink: #ECEDF3; --muted: #A2A6B5;
+    --rule: #2B2E3A; --accent: #97A1FF; --accent-soft: #232748; --frame: #F6F7FA; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111218; --surface: #1A1C24; --ink: #ECEDF3; --muted: #A2A6B5;
+  --rule: #2B2E3A; --accent: #97A1FF; --accent-soft: #232748; --frame: #F6F7FA; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+img { display: block; max-width: 100%; height: auto; }
+.label { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.small { font-size: .85rem; }
+
+.layout {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 0 56px;
+}
+
+/* Sidebar */
+.side { position: relative; }
+.side-inner {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  padding-block: 40px 32px;
+  display: grid;
+  gap: 28px;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+.mark { font-size: 1.15rem; font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: -.01em; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filters button {
+  font: inherit; font-size: .85rem;
+  padding: 5px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.filters button:hover { color: var(--ink); border-color: var(--muted); }
+.filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.groups { display: grid; gap: 22px; }
+.group h2 { margin: 0 0 8px; font-weight: 400; }
+.group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.group a {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: baseline;
+  padding: 6px 10px; margin-inline: -10px;
+  border-radius: 6px;
+  color: var(--ink); text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.group a:hover { background: var(--accent-soft); }
+.group a.active { background: var(--accent-soft); color: var(--accent); }
+.group a .y { color: var(--muted); font-size: .8rem; }
+.group.dim { opacity: .4; }
+.side-foot { border-top: 1px solid var(--rule); padding-top: 16px; display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
+.side-foot span { user-select: all; color: var(--ink); }
+
+/* Main column */
+main { min-width: 0; }
+header { padding-block: 40px clamp(32px, 5vw, 56px); }
+.topline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; margin-bottom: clamp(28px, 5vw, 48px); }
+h1 {
+  font-weight: 700;
+  font-size: clamp(3rem, 8.5vw, 6.8rem);
+  line-height: .95;
+  letter-spacing: -.035em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 em { font-weight: 400; color: var(--accent); }
+.intro { margin: clamp(24px, 4vw, 36px) 0 0; font-size: clamp(1.1rem, 1.7vw, 1.3rem); max-width: 36em; }
+
+.case { padding-block: clamp(44px, 6vw, 80px); border-top: 1px solid var(--rule); scroll-margin-top: 8px; }
+.case[hidden] { display: none !important; }
+.case-head { display: grid; gap: 12px; margin-bottom: clamp(24px, 4vw, 36px); }
+.case-head .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.tag {
+  font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px;
+}
+h3.title {
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -.025em;
+  margin: 0;
+  text-wrap: balance;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: .9rem; font-style: italic; }
+.case-body { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 28px 44px; align-items: start; }
+.text { min-width: 0; }
+.text .lede { font-size: 1.18rem; margin: 0 0 18px; }
+.text h4 { font-weight: 400; margin: 24px 0 8px; }
+.text ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.text p { margin: 0 0 12px; }
+.credit { font-size: .88rem; color: var(--muted); font-style: italic; border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 24px; }
+
+.frame { background: var(--frame); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+figure { margin: 0; min-width: 0; }
+figcaption { margin-top: 8px; color: var(--muted); font-size: .86rem; font-style: italic; }
+.stack { display: grid; gap: 24px; min-width: 0; }
+.pair { display: grid; grid-template-columns: minmax(0, 2.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+
+/* Spec strip */
+.spec {
+  margin-top: clamp(28px, 4vw, 48px);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 30px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px 36px;
+}
+.spec h5 { margin: 0 0 14px; font-weight: 400; }
+.swatches { display: grid; gap: 8px; }
+.sw { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: .9rem; }
+.chip { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--rule); }
+.sw .h { color: var(--muted); font-size: .8rem; }
+.types { display: grid; gap: 6px; }
+.types div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; line-height: 1.2; }
+.types .n { color: var(--muted); font-size: .8rem; }
+.spacing { display: grid; gap: 8px; }
+.sp { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; font-size: .8rem; color: var(--muted); }
+.bar { height: 10px; background: var(--accent); border-radius: 2px; }
+.rules { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: .9rem; }
+.rules li { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+.rules b { color: var(--accent); font-weight: 700; }
+
+.pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; min-width: 0; }
+
+.play {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 6px; padding: 10px 18px;
+  border: 1.5px solid var(--ink); border-radius: 999px;
+  color: var(--ink); text-decoration: none; font-weight: 700;
+  transition: background .15s, color .15s;
+}
+.play:hover { background: var(--ink); color: var(--paper); }
+.tilebox {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+  min-height: 240px; display: grid; place-items: center; padding: 28px; text-align: center;
+}
+.tilebox .big { font-weight: 700; font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -.02em; line-height: 1.05; overflow-wrap: anywhere; }
+
+footer { border-top: 1px solid var(--rule); padding-block: 36px 56px; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 32px; align-items: baseline; }
+.foot .big { font-weight: 700; font-size: clamp(1.5rem, 3.5vw, 2.2rem); letter-spacing: -.02em; }
+.contact { display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: .92rem; }
+.contact span { user-select: all; }
+
+@media (max-width: 960px) {
+  .case-body { grid-template-columns: minmax(0, 1fr); }
+  .spec { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .side-inner { position: static; max-height: none; padding-block: 24px 8px; gap: 18px; border-bottom: 1px solid var(--rule); }
+  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .side-foot { display: none; }
+  header { padding-top: 24px; }
+}
+@media (max-width: 520px) {
+  .pair, .pages { grid-template-columns: minmax(0, 1fr); }
+  .pair figure:last-child { max-width: 240px; }
+  .groups { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="layout">
+  <aside class="side" aria-label="Projects by category">
+    <div class="side-inner">
+      <a class="mark" href="#top">Zirou (Yoyo) Liang</a>
+
+      <div>
+        <div class="label" style="margin-bottom:8px">Show</div>
+        <div class="filters" role="group" aria-label="Filter projects">
+          <button type="button" id="f-all" data-filter="all" aria-pressed="true">All</button>
+          <button type="button" id="f-web" data-filter="web" aria-pressed="false">Web</button>
+          <button type="button" id="f-email" data-filter="email" aria-pressed="false">Email</button>
+        </div>
+      </div>
+
+      <nav class="groups">
+        <div class="group" data-cat="web">
+          <h2 class="label">Web design</h2>
+          <ul>
+            <li><a href="#thought-check" data-target="thought-check">Thought Check <span class="y">2026</span></a></li>
+            <li><a href="#mahjong" data-target="mahjong">Chinese-Character Mahjong <span class="y">2026</span></a></li>
+          </ul>
+        </div>
+        <div class="group" data-cat="email">
+          <h2 class="label">Email &amp; outreach</h2>
+          <ul>
+            <li><a href="#outreach" data-target="outreach">Client Outreach Templates <span class="y">2025</span></a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="side-foot">
+        <span>zl3694@columbia.edu</span>
+        <a href="https://www.linkedin.com/in/zirou-liang" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </aside>
+
+  <main id="top">
+    <header>
+      <div class="topline">
+        <span class="label">Portfolio · 2026</span>
+        <span class="label">New York, NY</span>
+      </div>
+      <h1>Zirou <em>(Yoyo)</em> Liang</h1>
+      <p class="intro">I design web interfaces and create email templates. I studied psychology before computer science, so I start from how people read, choose, and act on a page. B.S. Psychology, University of Richmond. B.S. Computer Science, Columbia, May 2027.</p>
+    </header>
+
+    <!-- Web: Thought Check -->
+    <section class="case" id="thought-check" data-cat="web">
+      <div class="case-head">
+        <div class="row"><span class="tag">Web</span><span class="meta"><span>Interactive web lesson</span><span>Spring 2026</span><span>Design lead</span></span></div>
+        <h3 class="title">Thought Check</h3>
+      </div>
+      <div class="case-body">
+        <div class="text">
+          <p class="lede">A ten-minute web lesson that teaches people to notice three cognitive distortions: all-or-nothing thinking, catastrophizing, and mind reading.</p>
+          <h4 class="label">The flow</h4>
+          <p>Learn each distortion with a real example and a balanced reframe, practice spotting it with a reveal, then take a short quiz. A progress bar and a sidebar show where you are at every step.</p>
+          <h4 class="label">What I designed</h4>
+          <ul>
+            <li>The page flow and every screen, from the home page to the results recap</li>
+            <li>A small design system: four core colors, an 8px spacing scale, and exactly five type sizes</li>
+            <li>Quiz feedback that explains why the answer you picked does not fit, instead of only marking it wrong</li>
+          </ul>
+          <p class="credit">Course project, User Interface Design, Columbia University. Built in Flask, HTML/CSS, and Bootstrap 5 with Silin Jiang, who led development.</p>
+        </div>
+        <div class="stack">
+          <figure>
+            <div class="frame"><img src="tc-learn.webp" width="1600" height="1140" alt="Thought Check lesson page for All-or-Nothing Thinking, with a sidebar of lessons and practice items, a definition, trigger words, a distorted thought, and a balanced reframe."></div>
+            <figcaption>Lesson page. Each distortion follows the same order: what it is, the trigger words, a distorted thought, and a reframe.</figcaption>
+          </figure>
+          <div class="pair">
+            <figure>
+              <div class="frame"><img src="tc-feedback.webp" width="1600" height="1025" alt="Quiz feedback page showing the user chose Catastrophizing, an explanation of why that does not fit, and the correct answer, All-or-Nothing Thinking."></div>
+              <figcaption>Wrong-answer feedback names your choice and explains the difference.</figcaption>
+            </figure>
+            <figure>
+              <div class="frame"><img src="tc-mobile.webp" width="600" height="1298" alt="Thought Check lesson page at phone width, with the sidebar stacked above the lesson."></div>
+              <figcaption>Phone width.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec" aria-label="Thought Check design system">
+        <div>
+          <h5 class="label">Color · 4 core + 2 states</h5>
+          <div class="swatches">
+            <div class="sw"><span class="chip" style="background:#2C3E7A"></span><span>Base: nav, headings, buttons</span><span class="h">#2C3E7A</span></div>
+            <div class="sw"><span class="chip" style="background:#5578A8"></span><span>Accent: progress, highlights</span><span class="h">#5578A8</span></div>
+            <div class="sw"><span class="chip" style="background:#3D3D4E"></span><span>Dark grey: body text</span><span class="h">#3D3D4E</span></div>
+            <div class="sw"><span class="chip" style="background:#E4EAF4"></span><span>Light grey: fills, dividers</span><span class="h">#E4EAF4</span></div>
+            <div class="sw"><span class="chip" style="background:#1E6B3C"></span><span>Correct</span><span class="h">#1E6B3C</span></div>
+            <div class="sw"><span class="chip" style="background:#9B2D23"></span><span>Wrong</span><span class="h">#9B2D23</span></div>
+          </div>
+        </div>
+        <div>
+          <h5 class="label">Type · exactly 5 sizes</h5>
+          <div class="types">
+            <div><span style="font-size:1.875rem;font-weight:700">Page title</span><span class="n">30px</span></div>
+            <div><span style="font-size:1.25rem;font-weight:700">Card heading</span><span class="n">20px</span></div>
+            <div><span style="font-size:1rem">Body copy</span><span class="n">16px</span></div>
+            <div><span style="font-size:.875rem">Secondary text</span><span class="n">14px</span></div>
+            <div><span style="font-size:.75rem;letter-spacing:.1em;font-weight:700">SECTION LABEL</span><span class="n">12px</span></div>
+          </div>
+          <ul class="rules">
+            <li><b>1.6</b><span>Body line height; headings at 1.2</span></li>
+            <li><b>680px</b><span>Text column cap, about 45 to 75 characters a line</span></li>
+          </ul>
+        </div>
+        <div>
+          <h5 class="label">Spacing · base 8</h5>
+          <div class="spacing">
+            <div class="sp"><span>8</span><span class="bar" style="width:16.6%"></span></div>
+            <div class="sp"><span>16</span><span class="bar" style="width:33.3%"></span></div>
+            <div class="sp"><span>24</span><span class="bar" style="width:50%"></span></div>
+            <div class="sp"><span>32</span><span class="bar" style="width:66.6%"></span></div>
+            <div class="sp"><span>40</span><span class="bar" style="width:83.3%"></span></div>
+            <div class="sp"><span>48</span><span class="bar" style="width:100%"></span></div>
+          </div>
+          <ul class="rules">
+            <li><b>4.5:1</b><span>Muted text checked against the page background for contrast</span></li>
+            <li><b>48px</b><span>Nav bar height, on the same 8px grid</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <figure style="margin-top:24px">
+        <div class="frame"><img src="tc-home.webp" width="1600" height="688" alt="Thought Check home page with the title Do You Know Your Cognitive Distortions, a three-step overview, a Start Learning button, and a list of the three distortions."></div>
+        <figcaption>Home page. The three steps and the three distortions are visible before you start.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Web: Mahjong -->
+    <section class="case" id="mahjong" data-cat="web">
+      <div class="case-head">
+        <div class="row"><span class="tag">Web</span><span class="meta"><span>Browser game</span><span>April 2026</span><span>Independent</span></span></div>
+        <h3 class="title">Chinese-Character Mahjong</h3>
+      </div>
+      <div class="case-body">
+        <div class="text">
+          <p class="lede">A browser version of a paper tabletop game played with Chinese characters. I designed and built it, and it is live on the web.</p>
+          <a class="play" href="https://zl3694.github.io/" target="_blank" rel="noopener">Play it at zl3694.github.io <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="tilebox">
+          <div>
+            <div class="big">zl3694.github.io</div>
+            <p class="small" style="color:var(--muted);margin:12px 0 0;font-style:italic">Designed and built by Zirou Liang</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Email: Outreach templates (client anonymized) -->
+    <section class="case" id="outreach" data-cat="email">
+      <div class="case-head">
+        <div class="row"><span class="tag">Email</span><span class="meta"><span>Email + LinkedIn templates</span><span>Spring 2025</span><span>Client work</span></span></div>
+        <h3 class="title">Client Outreach Templates</h3>
+      </div>
+      <div class="case-body">
+        <div class="text">
+          <p class="lede">Cold email and LinkedIn templates for an HR and leadership consulting firm. I produced the whole deliverable, from choosing which client segments to target to the finished template pages.</p>
+          <h4 class="label">What I made</h4>
+          <ul>
+            <li>An assessment of eight professional-services segments that narrowed the outreach to four</li>
+            <li>A cold email for each of the four segments, with three subject-line options per email</li>
+            <li>A short LinkedIn message for each segment</li>
+            <li>The finished template pages, set in the client's existing brand</li>
+          </ul>
+          <p class="credit">Student consulting engagement as Senior Marketing Consultant. To protect the client, its name, contact details, logo, and segment analysis are withheld. The brand styling on these pages is the client's, not my work.</p>
+        </div>
+        <div class="pages">
+          <figure>
+            <div class="frame"><img src="outreach-email.webp" width="900" height="1010" alt="Cold email template for accounting and financial advisory firms, with three subject-line options; the firm name and signature are redacted."></div>
+            <figcaption>Cold email, segment 1 of 4</figcaption>
+          </figure>
+          <figure>
+            <div class="frame"><img src="outreach-linkedin.webp" width="900" height="600" alt="Short LinkedIn message template for accounting and financial advisory firms; the firm name and signature are redacted."></div>
+            <figcaption>LinkedIn message, same segment</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="foot">
+        <span class="big">Let's work together.</span>
+        <div class="contact">
+          <span>zl3694@columbia.edu</span>
+          <a href="https://www.linkedin.com/in/zirou-liang" target="_blank" rel="noopener">linkedin.com/in/zirou-liang</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.filters button'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.case'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.group'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('.group a'));
+
+  function applyFilter(cat) {
+    buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.filter === cat)); });
+    sections.forEach(function (s) { s.hidden = !(cat === 'all' || s.dataset.cat === cat); });
+    groups.forEach(function (g) { g.classList.toggle('dim', !(cat === 'all' || g.dataset.cat === cat)); });
+  }
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () { applyFilter(b.dataset.filter); });
+  });
+
+  // Clicking a project in a dimmed category shows everything again so the link still lands.
+  links.forEach(function (a) {
+    a.addEventListener('click', function () {
+      var target = document.getElementById(a.dataset.target);
+      if (target && target.hidden) applyFilter('all');
+    });
+  });
+
+  // Highlight the project currently on screen.
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.toggle('active', a.dataset.target === e.target.id); });
+      });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    sections.forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+
+</body>
+</html>
